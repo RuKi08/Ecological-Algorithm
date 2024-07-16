@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 
 '''
@@ -12,6 +13,7 @@ import numpy as np
 '''
 
 genesize = 4
+gene_Tx = 'AaBbCcDdEeFfGgHhIiJjKkLl'
 
 energy_ch = [
     [0.002, [[0, [ 1, 1, 1]]]],
@@ -19,6 +21,8 @@ energy_ch = [
 	[0.006, [[1, [ 1,-1, 1]], [2, [-1,-1, 1]]]],
 	[0.006, [[1, [ 1,-1,-1]], [3, [ 1, 1, 1]]]],
 ]
+
+atmosphere_Tx = ['A', 'B', 'C', 'D']
 
 atmosphere = [
 	[1000, 10],
@@ -37,43 +41,131 @@ class Creature:
 
 		self.time = 0
 
+		self.energy_acquisition_num = []
+
+		for num in range(len(energy_ch)):
+			True_ = 0
+			for ch in energy_ch[num][1]: 
+				if [n-(n**2)+1 for n in genes[ch[0]]] == ch[1]: True_ += 1
+
+			if len(energy_ch[num][1]) == True_:
+				self.energy_acquisition_num.append(num)
+
+
 	def EVENT(self):
 		atmosphere_ = atmosphere
 		
 		self.energy -= 1+self.time*0.001
 		self.time += 1
 
-		for num in range(len(energy_ch)):
-			True_ = 0
-			for ch in energy_ch[num][1]: 
-				if [n-(n**2)+1 for n in self.genes[ch[0]]] == ch[1]: True_ += 1
-
-			if len(energy_ch[num][1]) == True_:
-				energy_ = atmosphere[num][0]*energy_ch[num][0]
-				self.energy += energy_
-				atmosphere_[num][0] -= energy_
-		
+		for num in self.energy_acquisition_num:
+			energy_ = atmosphere[num][0]*energy_ch[num][0]
+			self.energy += energy_
+			atmosphere_[num][0] -= energy_
+	
 		return atmosphere_
 
+ancient_creatures = []
 
 creatures = []
 creatures.append(Creature(0, 0, 50, 0, [[ 0,-1, 1], [ 1,-1, 0], [ 1,-1, 1], [ 0, 0, 0]]))
 creatures.append(Creature(1, 0, 50, 1, [[ 1, 0,-1], [ 0,-1, 1], [ 1, 0,-1], [ 1,-1,-1]]))
-creatures.append(Creature(2, 0, 50, 0, [[ 0, 0, 1], [ 0,-1,-1], [ 1,-1, 0], [ 1, 0, 1]]))
+creatures.append(Creature(2, 0, 50, 0, [[ 0, 0, 1], [ 0,-1,-1], [ 1,-1, 0], [-1, 0, 1]]))
 creatures.append(Creature(3, 0, 50, 1, [[-1,-1, 0], [ 0, 0, 1], [ 0,-1,-1], [ 0,-1,-1]]))
 
-while True:
-	for creature in creatures:
-		print(f"{creature.gender}, {creature.generation_position}, {creature.energy:.1f}, {creature.genes}")
+stageSize = 1
 
-	input()
-	for _ in range(1):
+while True:
+	# for creature in creatures:
+	# 	print(f"{creature.gender}, {creature.generation_position}, {creature.energy:.1f}, {creature.genes}")
+
+	TEXT = input('\033[33mCommand_ \033[0m')
+
+	try:
+		family_tree = [[] for _ in range(max([i.generation_position for i in creatures])+1)]
+	except ValueError: 
+		family_tree = [[] for _ in range(max([i.generation_position for i in ancient_creatures])+1)]
+		
+	try:
+		for creature in ancient_creatures:
+			family_tree[creature.generation_position].append(creature)
+
+		for creature in creatures:
+			family_tree[creature.generation_position].append(creature)
+	except:
+		print('\033[31mError\033[0m')
+		
+
+	if TEXT.isdecimal(): stageSize = int(TEXT)
+	elif TEXT == 'print':
+		for Y in range(len(family_tree)):
+			print()
+			print(f'\033[96m{Y}\033[0m', end='\t')
+			for X in range(len(family_tree[Y])):
+				Tx = ''
+				for i in family_tree[Y][X].energy_acquisition_num:
+					Tx += atmosphere_Tx[i]
+
+
+				if family_tree[Y][X] in creatures: 	print(f'\033[0m{X}_{Tx}\033[0m', end='\t')
+				else:								print(f'\033[90m{X}_{Tx}\033[0m', end='\t')
+
+		print()
+		continue
+	elif TEXT == 'reset':
+		creatures = []
+		creatures.append(Creature(0, 0, 50, 0, [[ 0,-1, 1], [ 1,-1, 0], [ 1,-1, 1], [ 0, 0, 0]]))
+		creatures.append(Creature(1, 0, 50, 1, [[ 1, 0,-1], [ 0,-1, 1], [ 1, 0,-1], [ 1,-1,-1]]))
+		creatures.append(Creature(2, 0, 50, 0, [[ 0, 0, 1], [ 0,-1,-1], [ 1,-1, 0], [-1, 0, 1]]))
+		creatures.append(Creature(3, 0, 50, 1, [[-1,-1, 0], [ 0, 0, 1], [ 0,-1,-1], [ 0,-1,-1]]))
+
+		ancient_creatures = []
+		continue
+
+	#부모, 세대, 섭취 에너지, 유전자형
+	elif 'get' in TEXT:
+		try:
+			index = TEXT.replace('get ', '').split('_')
+			creature = family_tree[int(index[0])][int(index[1])]
+
+			energy_tx = []
+			for i in creature.energy_acquisition_num:
+				energy_tx.append(atmosphere_Tx[i])
+
+			parent_1 = f'{creature.ancestor_creature[0].generation_position}_{family_tree[creature.ancestor_creature[0].generation_position].index(creature.ancestor_creature[0])}'
+			parent_2 = f'{creature.ancestor_creature[1].generation_position}_{family_tree[creature.ancestor_creature[1].generation_position].index(creature.ancestor_creature[1])}'
+
+			gene_Tx_ = ''
+			for i in range(genesize):
+				for l in range(3):
+					if creature.genes[i][l] == -1:
+						gene_Tx_ += gene_Tx[(i*3+l)*2+1]*2
+					elif creature.genes[i][l] == 1:
+						gene_Tx_ += gene_Tx[(i*3+l)*2]*2
+					else:
+						gene_Tx_ += gene_Tx[(i*3+l)*2] + gene_Tx[(i*3+l)*2+1]
+
+			print('\033[96m------------------------\033[0m')
+			print(f'\033[96mGeneration\t\033[0m{creature.generation_position}')
+			print(f'\033[96mParent\t\t\033[0m{parent_1}, {parent_2}')
+			print(f'\033[96mEnergy\t\t\033[0m{", ".join(energy_tx)}')
+			print(f'\033[96mGenotype\t\033[0m{gene_Tx_}')
+			print('\033[96m------------------------\033[0m')
+		except:
+			print('\033[31mError\033[0m')
+		continue
+	elif TEXT == 'exit': 
+		sys.exit()
+	else: continue
+
+	for _ in range(stageSize):
 		mature_creature = []
 
 		for creature in creatures: 
 			atmosphere = creature.EVENT()
 
 			if creature.energy < 0: 
+				ancient_creatures.append(creature)
 				creatures.remove(creature)
 				continue
 
@@ -92,16 +184,14 @@ while True:
 			energy				= 50
 			gender				= np.random.randint(2)
 
-			genes_ = []
-			for i in range(len(genesize)):
+			gene_ = []
+			for i in range(genesize):
 				gene_1 = [np.random.choice([-1, 1]) if n == 0 else n for n in mature_creature[0].genes[i]]
 				gene_2 = [np.random.choice([-1, 1]) if n == 0 else n for n in mature_creature[1].genes[i]]
+
+				gene_.append([(gene_1[i] + gene_2[i])/2 for i in range(3)])
 				
-
-
-			genes				= [[[mature_creature[0].genes[i], mature_creature[1].genes[i]][np.random.randint(2)], 
-									np.random.choice([-1, 0, 1], 3, replace = True)][np.random.choice(2, p=[0.85, 0.15])]
-									for i in range(genesize)]
+			genes = [[gene_[i], np.random.choice([-1, 0, 1], 3, replace = True)][np.random.choice(2, p=[0.85, 0.15])] for i in range(genesize)]
 				
 			
 			mature_creature[0].energy = 50
