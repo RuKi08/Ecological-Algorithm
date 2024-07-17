@@ -1,5 +1,6 @@
 import sys
 import numpy as np
+from matplotlib import pyplot as plt
 
 '''
 세대 위치.
@@ -30,6 +31,8 @@ atmosphere = [
 	[1000, 20],
 	[1000, 20],
 ]
+
+graph_atmosphere = []
 
 class Creature:
 	def __init__(self, ancestor_creature, generation_position, energy, gender, genes):
@@ -68,7 +71,7 @@ class Creature:
 ancient_creatures = []
 
 creatures = []
-creatures.append(Creature(0, 0, 50, 0, [[ 0,-1, 1], [ 1,-1, 0], [ 1,-1, 1], [ 0, 0, 0]]))
+creatures.append(Creature(0, 0, 50, 0, [[ 0,-1, 1], [ 1,-1, 0], [ 1,-1, 1], [ 0, 0, 0]])) 
 creatures.append(Creature(1, 0, 50, 1, [[ 1, 0,-1], [ 0,-1, 1], [ 1, 0,-1], [ 1,-1,-1]]))
 creatures.append(Creature(2, 0, 50, 0, [[ 0, 0, 1], [ 0,-1,-1], [ 1,-1, 0], [-1, 0, 1]]))
 creatures.append(Creature(3, 0, 50, 1, [[-1,-1, 0], [ 0, 0, 1], [ 0,-1,-1], [ 0,-1,-1]]))
@@ -154,6 +157,12 @@ while True:
 		except:
 			print('\033[31mError\033[0m')
 		continue
+	elif TEXT == 'show':
+		for graph in graph_atmosphere:
+			plt.plot(graph)
+		plt.show()
+		continue
+
 	elif TEXT == 'exit': 
 		sys.exit()
 	else: continue
@@ -199,6 +208,10 @@ while True:
 
 			creatures.append(Creature(ancestor_creature, generation_position, energy, gender, genes))
 
+
+		graph_atmosphere.append([i[0] for i in atmosphere])
 		for atmosphere_ in atmosphere:
 			atmosphere_[0] += atmosphere_[1]
 		
+
+# %%
