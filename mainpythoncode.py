@@ -11,6 +11,7 @@ from matplotlib import pyplot as plt
 여러가지 그래프
 
 시간에 따른 패널티가 없으면(늙지 않으면)조상 세대가 자원을 지속적으로 소비하여 종의 성장을 방해
+염색체 12개
 '''
 
 genesize = 4
@@ -35,8 +36,6 @@ atmosphere = [
 graph_atmosphere = [[], [], [], []]
 graph_creatures = []
 graph_creatures_energy_ch = [[], [], [], []]
-graph_creatures_energy_ch_bar = [0, 0, 0, 0]
-sex_ratio = []
 
 
 class Creature:
@@ -140,8 +139,12 @@ while True:
 			for i in creature.energy_acquisition_num:
 				energy_tx.append(atmosphere_Tx[i])
 
-			parent_1 = f'{creature.ancestor_creature[0].generation_position}_{family_tree[creature.ancestor_creature[0].generation_position].index(creature.ancestor_creature[0])}'
-			parent_2 = f'{creature.ancestor_creature[1].generation_position}_{family_tree[creature.ancestor_creature[1].generation_position].index(creature.ancestor_creature[1])}'
+			try:
+				parent_1 = f'{creature.ancestor_creature[0].generation_position}_{family_tree[creature.ancestor_creature[0].generation_position].index(creature.ancestor_creature[0])}'
+				parent_2 = f'{creature.ancestor_creature[1].generation_position}_{family_tree[creature.ancestor_creature[1].generation_position].index(creature.ancestor_creature[1])}'
+			except:
+				parent_1 = ''
+				parent_2 = ''
 
 			gene_Tx_ = ''
 			for i in range(genesize):
@@ -167,36 +170,34 @@ while True:
 		# 각각 에너리쟝
 		# 총 개체수
 		# 분해능력 별 개체수
-		# 성비
-		# 분해능력 별 개체수 막대그래프
+
 		graph_creatures_energy_ch_bar = [0, 0, 0, 0]
 		sex_ratio = []
 		 
-		plt.scatter(3, 2, 1)
+		plt.figure(figsize=(10,12))
+
+		plt.subplot(2, 2, 1)
+		plt.title("total energy")
 		graph__ = graph_atmosphere[0]
 		for graph in graph_atmosphere[1:]:
 			for i in range(len(graph)): graph__[i] += graph[i]
 		plt.plot(graph__)
 		plt.ylim(0, 10000)
 
-		plt.scatter(3, 2, 2)
+		plt.subplot(2, 2, 2)
+		plt.title("energy")
 		for graph in graph_atmosphere:
 			plt.plot(graph)
 			plt.ylim(0, 5000)
 
-		plt.scatter(3, 2, 3)
+		plt.subplot(2, 2, 3)
+		plt.title("total population")
 		plt.plot(graph_creatures)
 
-		plt.scatter(3, 2, 4)
+		plt.subplot(2, 2, 4)
+		plt.title("resolution ability population")
 		for graph in graph_creatures_energy_ch:
 			plt.plot(graph)
-
-		plt.scatter(3, 2, 5)
-		plt.bar(graph_creatures_energy_ch_bar)
-
-		plt.scatter(3, 2, 6)
-		plt.plot(sex_ratio)
-		plt.plot([1-i for i in sex_ratio])
 		
 		plt.show()
 		continue
@@ -250,20 +251,10 @@ while True:
 			graph_atmosphere[NUM].append(atmosphere[NUM][0])
 			atmosphere[NUM][0] += atmosphere[NUM][1]
 
-		sex_ratio_Num = [0, 0]
 		graph_creatures.append(len(creatures))
 
 		for i in graph_creatures_energy_ch: i.append(0)
 		for creature in creatures:
-			for i in range(len(graph_creatures_energy_ch_bar)):
-				if creature.energy_acquisition_num in i: 
+			for i in range(len(graph_creatures_energy_ch)):
+				if i in creature.energy_acquisition_num: 
 					graph_creatures_energy_ch[i][-1] += 1
-					graph_creatures_energy_ch_bar[i] += 1
-
-			if creature.gender == 0:sex_ratio_Num[0] += 1
-			else: 					sex_ratio_Num[1] += 1
-
-		sex_ratio.append(sex_ratio_Num[0]/(sex_ratio_Num[0]+sex_ratio_Num[1]))
-		
-
-# %%
