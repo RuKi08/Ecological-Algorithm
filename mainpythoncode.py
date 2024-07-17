@@ -32,7 +32,12 @@ atmosphere = [
 	[1000, 20],
 ]
 
-graph_atmosphere = []
+graph_atmosphere = [[], [], [], []]
+graph_creatures = []
+graph_creatures_energy_ch = [[], [], [], []]
+graph_creatures_energy_ch_bar = [0, 0, 0, 0]
+sex_ratio = []
+
 
 class Creature:
 	def __init__(self, ancestor_creature, generation_position, energy, gender, genes):
@@ -158,8 +163,41 @@ while True:
 			print('\033[31mError\033[0m')
 		continue
 	elif TEXT == 'show':
+		# 총 에너지량
+		# 각각 에너리쟝
+		# 총 개체수
+		# 분해능력 별 개체수
+		# 성비
+		# 분해능력 별 개체수 막대그래프
+		graph_creatures_energy_ch_bar = [0, 0, 0, 0]
+		sex_ratio = []
+		 
+		plt.scatter(3, 2, 1)
+		graph__ = graph_atmosphere[0]
+		for graph in graph_atmosphere[1:]:
+			for i in range(len(graph)): graph__[i] += graph[i]
+		plt.plot(graph__)
+		plt.ylim(0, 10000)
+
+		plt.scatter(3, 2, 2)
 		for graph in graph_atmosphere:
 			plt.plot(graph)
+			plt.ylim(0, 5000)
+
+		plt.scatter(3, 2, 3)
+		plt.plot(graph_creatures)
+
+		plt.scatter(3, 2, 4)
+		for graph in graph_creatures_energy_ch:
+			plt.plot(graph)
+
+		plt.scatter(3, 2, 5)
+		plt.bar(graph_creatures_energy_ch_bar)
+
+		plt.scatter(3, 2, 6)
+		plt.plot(sex_ratio)
+		plt.plot([1-i for i in sex_ratio])
+		
 		plt.show()
 		continue
 
@@ -208,10 +246,24 @@ while True:
 
 			creatures.append(Creature(ancestor_creature, generation_position, energy, gender, genes))
 
+		for NUM in range(len(atmosphere)):
+			graph_atmosphere[NUM].append(atmosphere[NUM][0])
+			atmosphere[NUM][0] += atmosphere[NUM][1]
 
-		graph_atmosphere.append([i[0] for i in atmosphere])
-		for atmosphere_ in atmosphere:
-			atmosphere_[0] += atmosphere_[1]
+		sex_ratio_Num = [0, 0]
+		graph_creatures.append(len(creatures))
+
+		for i in graph_creatures_energy_ch: i.append(0)
+		for creature in creatures:
+			for i in range(len(graph_creatures_energy_ch_bar)):
+				if creature.energy_acquisition_num in i: 
+					graph_creatures_energy_ch[i][-1] += 1
+					graph_creatures_energy_ch_bar[i] += 1
+
+			if creature.gender == 0:sex_ratio_Num[0] += 1
+			else: 					sex_ratio_Num[1] += 1
+
+		sex_ratio.append(sex_ratio_Num[0]/(sex_ratio_Num[0]+sex_ratio_Num[1]))
 		
 
 # %%
